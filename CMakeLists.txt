@@ -43,7 +43,7 @@ include(ClangFormat.cmake)
 
 if(CLANG_TIDY)
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        if (${CLANG_TIDY_NO_ERRORS}) 
+        if (${CLANG_TIDY_NO_ERRORS})
             set (CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy-noerrors)
         else()
             set (CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy)
@@ -60,10 +60,18 @@ endif()
 
 add_library(${Target} STATIC)
 
+get_target_property(Target_CLANG_TIDY ${Target} CXX_CLANG_TIDY)
+message(STATUS "Target_CLANG_TIDY: ${Target_CLANG_TIDY}")
+
+set(CMAKE_CXX_CLANG_TIDY "")  # disable clang tidy for included libraries targets
+
 # set source and include directory
 add_subdirectory(src)
 add_subdirectory(include)
+add_subdirectory(libs)
 target_include_directories(${Target} PUBLIC include)
+
+
 
 include(warnings.cmake)
 include(define.cmake)

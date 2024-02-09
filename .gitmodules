@@ -1,0 +1,3 @@
+[submodule "libs/cxxitimer"]
+	path = libs/cxxitimer
+	url = https://github.com/NikolasK-source/cxxitimer.git
