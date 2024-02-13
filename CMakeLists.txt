@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 Nikolas Koesling <nikolas@koesling.info>.
+# Copyright (C) 2024 Nikolas Koesling <nikolas@koesling.info>.
 # This program is free software. You can redistribute it and/or modify it under the terms of the MIT License.
 #
 
@@ -9,9 +9,9 @@ cmake_minimum_required(VERSION 3.24.0 FATAL_ERROR)
 # ======================================================================================================================
 
 # project
-project(CMAKE_Template_Lib LANGUAGES CXX VERSION 0.0.1)
+project(CXX_Timer_Callbacks LANGUAGES CXX VERSION 0.0.1)
 
-set(Target "Template_Lib")        # library name
+set(Target "cxx_timer_callbacks")        # library name
 set(STANDARD 17)                  # C++ Standard
 set(ARCHITECTURE "native")        # CPU architecture to optimize for (only relevant if OPTIMIZE_FOR_ARCHITECTURE is ON)
 
@@ -41,22 +41,22 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 include(CTest)
 include(ClangFormat.cmake)
 
-if(CLANG_TIDY)
+if (CLANG_TIDY)
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         if (${CLANG_TIDY_NO_ERRORS})
-            set (CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy-noerrors)
-        else()
-            set (CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy)
-        endif()
+            set(CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy-noerrors)
+        else ()
+            set(CLANG_TIDY_CONFIG_FILE ${CMAKE_SOURCE_DIR}/.clang-tidy)
+        endif ()
 
         set(CMAKE_CXX_CLANG_TIDY
                 clang-tidy
                 -config-file=${CLANG_TIDY_CONFIG_FILE})
         message(STATUS "clang-tidy enabled: ${CLANG_TIDY_CONFIG_FILE}")
-    else()
+    else ()
         message(WARNING "clang-tidy requested, but only available if clang is selected as compiler")
-    endif()
-endif()
+    endif ()
+endif ()
 
 add_library(${Target} STATIC)
 
@@ -66,11 +66,10 @@ message(STATUS "Target_CLANG_TIDY: ${Target_CLANG_TIDY}")
 set(CMAKE_CXX_CLANG_TIDY "")  # disable clang tidy for included libraries targets
 
 # set source and include directory
+add_subdirectory(libs)
 add_subdirectory(src)
 add_subdirectory(include)
-add_subdirectory(libs)
 target_include_directories(${Target} PUBLIC include)
-
 
 
 include(warnings.cmake)
@@ -82,65 +81,63 @@ set_target_properties(${Target} PROPERTIES
         CXX_STANDARD ${STANDARD}
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS ${COMPILER_EXTENSIONS}
-    )
+)
 
 # Determine whether this is a standalone project or included by other projects
 set(STANDALONE_PROJECT OFF)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(STANDALONE_PROJECT ON)
-endif()
+endif ()
 
-if(ENABLE_TEST AND STANDALONE_PROJECT)
+if (ENABLE_TEST AND STANDALONE_PROJECT)
     add_subdirectory(test)
-endif()
+endif ()
 
 if (NOT STANDALONE_PROJECT)
     unset(COMPILER_WARNINGS)
-endif()
+endif ()
 
 # options that are valid for gcc and clang
 function(commonopts)
     # more debugging information
-    if(OPTIMIZE_DEBUG)
+    if (OPTIMIZE_DEBUG)
         SET(CMAKE_CXX_FLAGS_DEBUG "-g3 -O3")
-    else()
+    else ()
         SET(CMAKE_CXX_FLAGS_DEBUG "-g3")
-    endif()
+    endif ()
 
-    if(MAKE_32_BIT_BINARY)
+    if (MAKE_32_BIT_BINARY)
         message(STATUS "Compiling as 32 bit binary.")
         target_compile_options(${Target} PUBLIC -m32)
-    endif()
+    endif ()
 
-    if(ENABLE_MULTITHREADING AND OPENMP)
+    if (ENABLE_MULTITHREADING AND OPENMP)
         message(STATUS "openmp enabled")
         target_compile_options(${Target} PUBLIC -fopenmp)
-    endif()
+    endif ()
 
-    if(OPTIMIZE_FOR_ARCHITECTURE)
+    if (OPTIMIZE_FOR_ARCHITECTURE)
         message(STATUS "using architecture specific code generator: ${ARCHITECTURE}")
         target_compile_options(${Target} PUBLIC -march=${ARCHITECTURE})
-    endif()
+    endif ()
 endfunction()
 
 
-
-if(COMPILER_WARNINGS)
+if (COMPILER_WARNINGS)
     message(STATUS "Compiler warnings enabled.")
-else()
+else ()
     message(STATUS "Compiler warnings disabled.")
-endif()
+endif ()
 
-if(ENABLE_MULTITHREADING)
+if (ENABLE_MULTITHREADING)
     # required by threading lib (std::thread)
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
     target_link_libraries(${Target} PRIVATE Threads::Threads)
-endif()
+endif ()
 
 
-
-if(BUILD_DOC)
+if (BUILD_DOC)
     # doxygen documentation (https://vicrucann.github.io/tutorials/quick-cmake-doxygen/)
     # check if Doxygen is installed
     find_package(Doxygen)
@@ -149,35 +146,35 @@ if(BUILD_DOC)
         set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
         set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-        if(EXISTS ${DOXYGEN_IN})
+        if (EXISTS ${DOXYGEN_IN})
             # request to configure the file
             configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
             message(STATUS "Doxygen configured")
 
             # note the option ALL which allows to build the docs together with the application
-            add_custom_target( doc_doxygen ALL
+            add_custom_target(doc_doxygen ALL
                     COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                     COMMENT "Generating API documentation with Doxygen"
-                    VERBATIM )
+                    VERBATIM)
             message(STATUS "Added target doc_doxygen")
-        else()
+        else ()
             message(WARNING "doxygen documentation requested, but file ${DOXYGEN_IN} does not exist.")
-        endif()
+        endif ()
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen need to be installed and accessible to generate the doxygen documentation.")
     endif (DOXYGEN_FOUND)
-endif()
+endif ()
 
 # add clang format target
-if(CLANG_FORMAT)
+if (CLANG_FORMAT)
     set(CLANG_FORMAT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/.clang-format)
 
-    if(EXISTS ${CLANG_FORMAT_FILE})
+    if (EXISTS ${CLANG_FORMAT_FILE})
         include(ClangFormat.cmake)
         target_clangformat_setup(${Target})
         message(STATUS "Added clang format target(s)")
-    else()
+    else ()
         message(WARNING "Clang format enabled, but file ${CLANG_FORMAT_FILE}  does not exist")
-    endif()
-endif()
+    endif ()
+endif ()
