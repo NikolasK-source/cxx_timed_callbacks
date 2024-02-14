@@ -1,8 +1,4 @@
-# CMake Library Project template
+# CxxTimerCallbacks
 
-This repository is a template for CMake C++ Projects.
+Linux C++ Library for timed callbacks 
 
-## Supported Compilers
-
-    - gcc
-    - clang
